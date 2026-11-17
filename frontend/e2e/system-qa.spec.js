@@ -222,11 +222,13 @@ test('TC-06 A01 role boundary denies manager and leaves templates unchanged', as
   await captureCase(page, testInfo, {
     id: 'TC-06', title: 'A01 Broken Access Control và A07 token',
     precondition: 'Có tài khoản Marketing và manager101; mẫu seed tồn tại.',
-    input: 'Manager GET/POST/PUT survey_templates; request thiếu JWT và JWT bị sửa chữ ký.',
-    expected: 'Manager nhận 403; thiếu/sai JWT nhận 401; template count không đổi.',
+    input: 'Manager thử GET/POST/PUT survey_templates, đọc dữ liệu center_id=102, gọi thiếu JWT và JWT sai chữ ký; kiểm tra payload JWT.',
+    expected: 'Sai vai trò/trung tâm nhận 403; thiếu/sai JWT nhận 401; payload chỉ có sub, role, exp; template không đổi.',
   }, async () => {
     const marketing = await login(request, 'marketing');
     const manager = await login(request, 'manager101');
+    const managerClaims = JSON.parse(Buffer.from(manager.split('.')[1], 'base64url').toString('utf8'));
+    const managerClaimNames = Object.keys(managerClaims).sort().join(',');
     const snapshot = () => database("SELECT GROUP_CONCAT(CONCAT_WS(':',template_id,name,title,intro_text,is_active) ORDER BY template_id SEPARATOR '|') FROM survey_template");
     const before = snapshot();
     const getDenied = await request.get(`${apiBase}/survey-templates`, { headers: bearer(manager) });
@@ -237,6 +239,7 @@ test('TC-06 A01 role boundary denies manager and leaves templates unchanged', as
       headers: bearer(manager), data: { name: 'CSAT sau bảo hành', title: 'Changed', intro_text: 'Denied', is_active: true },
     });
     const missingJwt = await request.get(`${apiBase}/survey-templates`);
+    const crossCenter = await request.get(`${apiBase}/survey-responses?center_id=102`, { headers: bearer(manager) });
     const jwtParts = manager.split('.');
     jwtParts[2] = `${jwtParts[2][0] === 'A' ? 'B' : 'A'}${jwtParts[2].slice(1)}`;
     const changedJwt = jwtParts.join('.');
@@ -245,10 +248,15 @@ test('TC-06 A01 role boundary denies manager and leaves templates unchanged', as
     expect(getDenied.status()).toBe(403);
     expect(postDenied.status()).toBe(403);
     expect(putDenied.status()).toBe(403);
+    expect(crossCenter.status()).toBe(403);
     expect(missingJwt.status()).toBe(401);
     expect(tamperedJwt.status()).toBe(401);
+    expect(managerClaims.sub).toMatch(/^[0-9]+$/);
+    expect(managerClaims.role).toBe('QL_TRUNG_TAM');
+    expect(typeof managerClaims.exp).toBe('number');
+    expect(managerClaimNames).toBe('exp,role,sub');
     expect(after).toBe(before);
-    return `Manager GET/POST/PUT=${getDenied.status()}/${postDenied.status()}/${putDenied.status()}, no JWT/tampered JWT=${missingJwt.status()}/${tamperedJwt.status()}, full template snapshot unchanged=${before === after}.`;
+    return `Manager GET/POST/PUT templates=${getDenied.status()}/${postDenied.status()}/${putDenied.status()}, cross-center request=${crossCenter.status()}, no JWT/tampered JWT=${missingJwt.status()}/${tamperedJwt.status()}, JWT claims=${managerClaimNames}, full template snapshot unchanged=${before === after}.`;
   });
 });
 
@@ -353,8 +361,8 @@ test('TC-11 duplicate invitation is rejected and SQL injection stays data', asyn
   await captureCase(page, testInfo, {
     id: 'TC-11', title: 'idempotency và SQL injection',
     precondition: 'Ticket 401 có đúng một lời mời từ TC-03; role Marketing và Service Key hợp lệ.',
-    input: 'Tạo lời mời ticket 401 lần hai; tạo template có chuỗi SQL injection trong name rồi GET lại.',
-    expected: 'Tạo trùng trả 409, số lời mời vẫn 1; payload được lưu nguyên văn, không làm thay đổi tập dữ liệu khác.',
+    input: 'Tạo lời mời ticket 401 lần hai; gửi chuỗi SQL injection vào center_id; lưu chuỗi SQL-shaped trong name rồi đọc lại.',
+    expected: 'Trùng trả 409; injection trong center_id trả 400; giá trị chuỗi lưu như dữ liệu, không tác động bảng khác.',
   }, async () => {
     const headers = keyHeader(serviceKey);
     const duplicate = await request.post(`${apiBase}/survey-invitations`, { headers, data: { ticket_id: 401 } });
@@ -362,6 +370,10 @@ test('TC-11 duplicate invitation is rejected and SQL injection stays data', asyn
     const forTicket = invitationList.filter(item => item.ticket_id === 401).length;
     const token = await login(request, 'marketing');
     const injection = `TC11-' OR 1=1 -- <script>alert(1)</script>`;
+    const injectionQuery = await request.get(`${apiBase}/survey-responses?center_id=${encodeURIComponent("' OR '1'='1")}`, {
+      headers: bearer(token),
+    });
+    const injectionQueryBody = await body(injectionQuery);
     const created = await request.post(`${apiBase}/survey-templates`, {
       headers: bearer(token), data: { name: injection, title: 'Injection sample', intro_text: 'Stored as literal data', is_active: false },
     });
@@ -371,10 +383,12 @@ test('TC-11 duplicate invitation is rejected and SQL injection stays data', asyn
     const deleted = await request.delete(`${apiBase}/survey-templates/${createdBody.template_id}`, { headers: bearer(token) });
     expect(duplicate.status()).toBe(409);
     expect(forTicket).toBe(1);
+    expect(injectionQuery.status()).toBe(400);
+    expect(injectionQueryBody.error.code).toBe('VALIDATION_FAILED');
     expect(created.status()).toBe(201);
     expect(detail.status()).toBe(200);
     expect(detailBody.name).toBe(injection);
     expect(deleted.status()).toBe(204);
-    return `Duplicate invitation=${duplicate.status()}, ticket401 rows=${forTicket}; injection template POST/GET/DELETE=${created.status()}/${detail.status()}/${deleted.status()}, name preserved literally.`;
+    return `Duplicate invitation=${duplicate.status()}, ticket401 rows=${forTicket}; injection query=${injectionQuery.status()} ${injectionQueryBody.error.code}; SQL-shaped template value POST/GET/DELETE=${created.status()}/${detail.status()}/${deleted.status()}, name preserved literally.`;
   });
 });
