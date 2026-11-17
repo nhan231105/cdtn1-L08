@@ -68,7 +68,7 @@ class ReportingIntegrationTest {
 
     @Test
     void listsPaginateFilterMaskAndRespectInclusiveDates() {
-        var filter = reports.scoped(new UserIdentity("test", "QL_TRUNG_TAM", 990101L), filter(null, null, 1, 5));
+        var filter = reports.scoped(new UserIdentity(1L, "test", "QL_TRUNG_TAM", 990101L), filter(null, null, 1, 5));
         var result = reports.responses(filter, 1, 1);
         assertEquals(2L, result.get("total"));
         assertEquals(1, items(result).size());
@@ -83,13 +83,13 @@ class ReportingIntegrationTest {
 
     @Test
     void rejectsOtherCenterAndMismatchedTechnician() {
-        var manager = new UserIdentity("test", "QL_TRUNG_TAM", 990101L);
+        var manager = new UserIdentity(1L, "test", "QL_TRUNG_TAM", 990101L);
         assertEquals("FORBIDDEN_SCOPE", assertThrows(ApiException.class,
                 () -> reports.scoped(manager, filter(990102L, null, 1, 5))).getCode());
         assertEquals("VALIDATION_FAILED", assertThrows(ApiException.class,
                 () -> reports.scoped(manager, filter(990101L, 990302L, 1, 5))).getCode());
         assertEquals("CENTER_NOT_FOUND", assertThrows(ApiException.class,
-                () -> reports.scoped(new UserIdentity("test", "MARKETING", null), filter(9999999L, null, 1, 5))).getCode());
+                () -> reports.scoped(new UserIdentity(1L, "test", "MARKETING", null), filter(9999999L, null, 1, 5))).getCode());
     }
 
     @Test

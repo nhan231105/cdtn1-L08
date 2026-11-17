@@ -22,7 +22,6 @@ import java.util.Map;
 
 @Service
 public class AuthService {
-    private static final String ISSUER = "smartcrm-l8";
     private static final long TTL_SECONDS = 3600;
     private final UserRepository users;
     private final byte[] secret;
@@ -48,9 +47,8 @@ public class AuthService {
         if (account.isEmpty() || !matches) throw ApiException.unauthenticated();
         UserIdentity user = account.get().identity();
         Instant now = Instant.now();
-        var claims = new JWTClaimsSet.Builder().issuer(ISSUER).subject(user.username())
-                .issueTime(Date.from(now)).expirationTime(Date.from(now.plusSeconds(TTL_SECONDS)))
-                .claim("role", user.role()).claim("center_id", user.centerId()).build();
+        var claims = new JWTClaimsSet.Builder().subject(Long.toString(user.userId()))
+                .expirationTime(Date.from(now.plusSeconds(TTL_SECONDS))).claim("role", user.role()).build();
         SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
         try {
             jwt.sign(new MACSigner(secret));
@@ -74,18 +72,18 @@ public class AuthService {
                 throw ApiException.unauthenticated();
             }
             JWTClaimsSet claims = jwt.getJWTClaimsSet();
-            if (!ISSUER.equals(claims.getIssuer()) || claims.getExpirationTime() == null
-                    || !claims.getExpirationTime().toInstant().isAfter(Instant.now()) || claims.getSubject() == null) {
+            if (claims.getExpirationTime() == null || !claims.getExpirationTime().toInstant().isAfter(Instant.now())
+                    || claims.getSubject() == null) {
                 throw ApiException.unauthenticated();
             }
-            UserIdentity user = users.findEnabled(claims.getSubject()).orElseThrow(ApiException::unauthenticated).identity();
-            if (!user.role().equals(claims.getStringClaim("role"))
-                    || !java.util.Objects.equals(user.centerId(), claims.getLongClaim("center_id"))) {
+            long userId = Long.parseLong(claims.getSubject());
+            UserIdentity user = users.findEnabled(userId).orElseThrow(ApiException::unauthenticated).identity();
+            if (!user.role().equals(claims.getStringClaim("role"))) {
                 throw ApiException.unauthenticated();
             }
             if (roles.length > 0 && Arrays.stream(roles).noneMatch(user.role()::equals)) throw ApiException.forbidden();
             return user;
-        } catch (ParseException | JOSEException exception) {
+        } catch (ParseException | JOSEException | NumberFormatException exception) {
             throw ApiException.unauthenticated();
         }
     }

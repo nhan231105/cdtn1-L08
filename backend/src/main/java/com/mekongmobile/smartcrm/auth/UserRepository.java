@@ -2,6 +2,8 @@ package com.mekongmobile.smartcrm.auth;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,9 +14,18 @@ public class UserRepository {
     public UserRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
     public Optional<UserAccount> findEnabled(String username) {
-        return jdbc.query("SELECT username, password_hash, role, center_id FROM app_user WHERE username = ? AND enabled = TRUE",
-                (rs, row) -> new UserAccount(new UserIdentity(rs.getString("username"), rs.getString("role"),
-                        rs.getObject("center_id", Long.class)), rs.getString("password_hash")), username).stream().findFirst();
+        return jdbc.query("SELECT user_id, username, password_hash, role, center_id FROM app_user WHERE username = ? AND enabled = TRUE",
+                UserRepository::mapAccount, username).stream().findFirst();
+    }
+
+    public Optional<UserAccount> findEnabled(long userId) {
+        return jdbc.query("SELECT user_id, username, password_hash, role, center_id FROM app_user WHERE user_id = ? AND enabled = TRUE",
+                UserRepository::mapAccount, userId).stream().findFirst();
+    }
+
+    private static UserAccount mapAccount(ResultSet rs, int row) throws SQLException {
+        return new UserAccount(new UserIdentity(rs.getLong("user_id"), rs.getString("username"), rs.getString("role"),
+                rs.getObject("center_id", Long.class)), rs.getString("password_hash"));
     }
 
     public List<Long> centerIds() {
