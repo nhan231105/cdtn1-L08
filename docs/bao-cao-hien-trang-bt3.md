@@ -46,9 +46,9 @@ Ngày cập nhật cuối: 2026-11-17. Repository công khai sinh viên xác nh�
 2. **Bảo mật/bằng chứng:** Maven Dependency-Check không hoàn tất; lần chạy dừng ở 50.000/426.378 bản ghi NVD. Chưa có ảnh do sinh viên chụp cho Compose và sec-1…sec-7. Không tạo ảnh giả.
 3. **Hồ sơ nộp:** cần sinh viên xác nhận họ tên/MSSV, cung cấp đề BT3 chính thức/tài liệu buổi 13 nếu muốn bỏ các giả định; cần ghép/xuất một PDF duy nhất và tự nộp VLU. Không có công cụ truy cập VLU trong phiên này.
 
-## Chưa thực hiện phát hành
+## Phát hành mã nguồn và trạng thái bàn giao
 
-Sinh viên đã xác nhận chặng cuối. `origin` trỏ `https://github.com/nhan231105/cdtn1-L08.git`; các thay đổi BT3 trên `feat/bt2-setup` được xây trên `origin/main`. Tag `v1.0` trỏ snapshot tài liệu/bài làm này theo yêu cầu phát hành; tag **không đồng nghĩa** các tiêu chí C1–C4 đã đạt: test Compose fail và clone theo tag chưa được thực hiện. Chưa có PDF BT3, link deploy cộng điểm hay xác nhận nộp VLU.
+Sinh viên đã xác nhận chặng cuối. Các thay đổi BT3 đã được đẩy fast-forward lên `main` của `https://github.com/nhan231105/cdtn1-L08.git`; tag annotated `v1.0` đã được đẩy và trang tag công khai truy cập được. `git ls-tree -r v1.0 --name-only docs/` xác nhận tài liệu nằm trong snapshot. Tag **không đồng nghĩa** các tiêu chí C1–C4 đã đạt: test Compose fail và phép thử clone theo tag chưa được thực hiện. Chưa có PDF BT3, link deploy cộng điểm hay xác nhận nộp VLU.
 
 ## Nhật ký kiểm chứng cuối chặng (2026-11-17)
 
