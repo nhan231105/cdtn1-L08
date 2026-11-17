@@ -4,7 +4,7 @@
 
 **Thời điểm chạy:** Backend suite 2026-11-17; Playwright system API cases TC-01–TC-11 và browser E2E TC-12 cùng ngày. TC-05 injection query được probe trực tiếp; TC-06 và TC-11 cũng kiểm tra lại trong system suite.
 
-**Môi trường:** Java 21.0.12.1, Spring Boot 4.1.2, MySQL 8.0.46 test riêng cổng 3307, Node 24.19.0, Vitest 5.1.0, Playwright 1.64.1. Docker CLI/Compose có cài nhưng Docker Desktop không khởi động được, daemon không sẵn sàng; kết quả dưới đây chưa phải phép thử máy trắng bằng Compose.
+**Môi trường:** Java 21.0.12.1, Spring Boot 4.1.2, MySQL 8.0.46 test riêng cổng 3307, Node 24.19.0, Vitest 5.1.0, Playwright 1.64.1. Bổ sung ngày 17/11: Docker Compose v5.7.0 / Engine 29.9.3 trên bản sao sạch cục bộ từ bundle commit (không phải clone GitHub/tag).
 
 | Mã | Loại | Tiền điều kiện | Bước chạy | Dữ liệu | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
 |---|---|---|---|---|---|---|---|
@@ -30,7 +30,15 @@
 - `npm run test:e2e -- system-qa.spec.js` — **11/11 cases PASS**, 2026-11-17.
 - `npm run test:e2e -- l8.spec.js` — **1/1 browser case PASS**, 2026-11-17.
 - `npm audit --omit=dev` — **0 vulnerabilities**, frontend production dependencies, 2026-11-17.
-- `docker compose --env-file .env.example config --quiet` and the same command with `--profile testing` — **exit 0**; Compose syntax and interpolation validated, images/containers were not built or started.
-- `docker compose up -d --build`, container test profile và phép thử máy trắng — **CHƯA CHẠY**; `docker compose version` trả `v5.7.0`, nhưng `docker info` báo không kết nối được Docker API và Docker Desktop trả `Docker Desktop is unable to start`.
+- `docker compose --env-file .env.example config --quiet` — **exit 0**; Compose syntax/interpolation validated.
+- On a clean local bundle copy, `docker compose up -d --build` — **exit 0**; `db`, `api`, `app` healthy; `/health` returned `{"status":"ok","db":"up"}`. This is not a clone of the public v1.0 tag.
+- Repeat startup on the disposable Compose volume: Flyway logged `No migration necessary`; counts before/after API restart were both `2|2|2|4|4|1|4` for centers/customers/technicians/tickets/devices/templates/users.
+- DB-off and malformed JSON probes: malformed POST `/api/auth/login` returned 400 `VALIDATION_FAILED` with a generic message; stopping the test DB made `/health` return 503 `{"status":"error","db":"down"}`. DB was restored and healthy afterward.
+- Container logs: scanning 1,002 combined API/app log lines for `password|token|0[0-9]{9}` found **0 matches**.
+- `docker compose --profile testing run --rm test` — **FAILED / interrupted before a final overall summary**. Captured failures included `SurveyFlowIntegrationTest` timestamp mismatch of 7 hours, `SurveyDeliveryLoadIntegrationTest` measuring 500 sent and 0 within 5 minutes, and reporting failures.
+- Re-run `docker compose --profile testing run --rm test ./mvnw -B -Dtest=ReportingIntegrationTest test` — **6 tests, 4 failures, 0 errors, 0 skipped; BUILD FAILURE**. Failures: two response counts/date-boundary assertions, one reporting role-matrix response 422 vs 200, and one technician aggregation assertion.
+- Repeatable individual test `docker compose --profile testing run --rm test ./mvnw -B -Dtest=AuthServiceTest test` — **1 test, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS**.
+- Public clean-machine clone by `git clone --branch v1.0`, tag verification and public-release test — **CHƯA CHẠY**; no v1.0 tag exists.
+- OWASP Dependency-Check Maven 12.1.0 — NVD update reached 50,000/426,378 records (12%) then stopped; **no backend vulnerability report was produced**.
 
-Không gộp những lần chạy khác ngày thành một lần chạy duy nhất. Các case TC-05/06/11 đã có probe trực tiếp mới nhưng system suite và ảnh của chúng cần chạy/chụp lại sau khi kiểm tra Compose.
+Không gộp những lần chạy khác ngày thành một lần chạy duy nhất. Các TC-01–TC-12 trên đây là các kết quả cục bộ trước đó; test profile Compose bổ sung phát hiện lỗi và không được ghi thành PASS. Cần sửa lỗi trước khi phát hành, sau đó chạy lại toàn bộ suite và chụp ảnh thật.

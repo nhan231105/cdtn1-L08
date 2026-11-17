@@ -15,8 +15,8 @@
 1. Clone the release tag:
 
    ```sh
-   git clone --branch v1.0 https://github.com/nhan231105/cdtn1-05.git
-   cd cdtn1-05
+   git clone --branch v1.0 https://github.com/nhan231105/cdtn1-L08.git
+   cd cdtn1-L08
    ```
 
 2. Create the local environment file:
@@ -80,6 +80,8 @@ docker compose --profile testing run --rm test
 ```
 
 Expected: Maven reports `BUILD SUCCESS`, with zero failures, errors, and skipped tests. The test profile uses the separate `smartcrm_l8_test` database created by `db/init/001-create-test-schema.sql`.
+
+**Release status (2026-11-17):** the local Compose test profile is currently failing. `ReportingIntegrationTest` reproduced 4 failures out of 6, including a 7-hour timestamp mismatch. Do not treat this guide as a verified v1.0 release until the failures are fixed and the full command above passes.
 
 To repeat the JWT-claim assertion (the claim check in TC-06), run this single test:
 

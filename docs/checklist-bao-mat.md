@@ -1,6 +1,6 @@
 # Checklist bảo mật — Smart CRM L8
 
-Ngày rà soát: 2026-11-17. “CHƯA LÀM” không được hiểu là đã đạt; các lệnh Compose cần chạy sau khi Docker daemon khởi động được.
+Ngày rà soát: 2026-11-17. Phép thử Compose chạy trên bản sao cục bộ tạm; chưa phải clone tag GitHub `v1.0`.
 
 ## 1. Không có secret dự án trong repo/history — ĐÃ LÀM
 
@@ -18,17 +18,17 @@ Ngày rà soát: 2026-11-17. “CHƯA LÀM” không được hiểu là đã đ
 
 **Minh chứng:** TC-10 truy vấn hash account `marketing` trên MySQL test, kết quả nhận dạng **BCRYPT**; cách tạo hash ở `DemoAccountBootstrap` dùng `BCryptPasswordEncoder`. Không ghi hash thật vào ảnh/tài liệu.
 
-## 5. Lỗi không lộ nội bộ — CHƯA LÀM
+## 5. Lỗi không lộ nội bộ — ĐÃ LÀM
 
-**Minh chứng hiện có:** TC-05 ngày 13/11 gửi dữ liệu sai và xác nhận response không có stack/SQL/JDBC; `HealthControllerTest` kiểm tra DB probe hỏng chỉ trả `{"status":"error","db":"down"}`. Chưa chạy request JSON lỗi và gọi API khi DB thực sự tắt trong container. **Kế hoạch:** khi Docker khả dụng, gửi JSON sai, dừng DB riêng của compose, gọi API/health và lưu ảnh `docs/screenshots/sec-5.png`.
+**Minh chứng:** Trong Compose tạm, POST JSON sai cú pháp đến `/api/auth/login` trả **400** với `VALIDATION_FAILED`, thông báo chung, không có stack/SQL/JDBC. Khi dừng riêng `clone-db-1`, GET `/health` trả **503** với `{"status":"error","db":"down"}`; không có thông tin nội bộ trong body. DB test được khởi động lại và đạt `healthy`.
 
-## 6. Log không chứa secret/dữ liệu cá nhân — CHƯA LÀM
+## 6. Log không chứa secret/dữ liệu cá nhân — ĐÃ LÀM
 
-**Minh chứng hiện có:** `docker compose logs --no-color api app | Select-String -Pattern 'password|token|0[0-9]{9}'` chưa chạy: Docker CLI/Compose có cài, nhưng Docker Desktop báo `Docker Desktop is unable to start` và named pipe daemon không tồn tại. **Kế hoạch:** chạy sau khi daemon hoạt động, kiểm cả API lẫn Nginx, không lưu log thô nếu có dữ liệu; chụp kết quả rỗng vào `docs/screenshots/sec-6.png`.
+**Minh chứng:** quét log của hai container bằng `docker logs clone-api-1` và `docker logs clone-app-1`, mẫu `password|token|0[0-9]{9}`: **1.002 dòng, 0 kết quả khớp** sau các phép thử. Chỉ ghi số liệu, không đưa log thô vào tài liệu.
 
 ## 7. Phiên bản dependency và kiểm lỗ hổng — CHƯA LÀM
 
-**Minh chứng hiện có:** `npm audit --omit=dev` ngày 17/11 báo **0 vulnerabilities** cho production dependencies React; `frontend/package-lock.json` khóa dependency graph. Chưa chạy audit cho Maven/backend dependencies, nên mục chung chưa được đánh dấu hoàn tất. **Kế hoạch:** chạy công cụ SCA Maven phù hợp với dependency tree trước tag; ghi advisory và kế hoạch xử lý nếu có.
+**Minh chứng:** `npm audit --omit=dev` ngày 17/11 báo **0 vulnerabilities** cho production dependencies React; `frontend/package-lock.json` khóa dependency graph. Thử chạy OWASP Dependency-Check Maven 12.1.0 nhưng lần cập nhật NVD bị dừng ở **50.000/426.378 bản ghi (12%)**; không sinh được báo cáo kết quả, nên backend chưa được kiểm lỗ hổng. **Kế hoạch:** hoàn tất scan trước phát hành; nếu cần API key, cung cấp riêng cho công cụ tại máy chạy và không commit/log giá trị.
 
 ## Ghi chú theo track SE
 
@@ -36,6 +36,6 @@ Ngày rà soát: 2026-11-17. “CHƯA LÀM” không được hiểu là đã đ
 - **CORS:** KHÔNG ÁP DỤNG cho cấu hình demo — React và API dùng cùng origin qua Nginx; không cấu hình wildcard. Khi tách origin triển khai phải dùng allow-list.
 - **Cookie:** KHÔNG ÁP DỤNG — frontend gửi bearer token trong `Authorization`, không lưu token/mật khẩu trên URL hoặc cookie.
 - **HTTPS:** Hướng dẫn triển khai thật nằm trong `docs/deployment-guide.md`: TLS tại reverse proxy, preserve `X-Forwarded-Proto`, Spring `server.forward-headers-strategy=framework`. Chưa triển khai HTTPS public.
-- **HTTP errors/logs:** TC-05 kiểm tra lỗi dữ liệu sai; chưa hoàn tất kiểm tra DB ngắt và log container (mục 5–6).
+- **HTTP errors/logs:** mục 5–6 đã kiểm tra trên Compose tạm như minh chứng trên; khi DB dừng, health probe trả lời chậm do chờ connection timeout trước khi trả 503.
 
-Ảnh minh chứng còn cần chụp thật: `sec-1.png`–`sec-4.png` (các lệnh/kết quả nêu trên), rồi `sec-5.png`–`sec-7.png` sau các kiểm tra còn thiếu. Che token, phone, password và `.env` trước khi chụp.
+Ảnh minh chứng người nộp còn cần chụp thật: `sec-1.png`–`sec-7.png` từ terminal của lần nghiệm thu; không có ảnh nào được tạo giả. Che token, phone, password và `.env` trước khi chụp.
