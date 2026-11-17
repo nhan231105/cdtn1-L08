@@ -60,7 +60,7 @@ Các giả định A03–A06 vẫn ghi “đề xuất – chờ GV” trong h�
 - **Thay đổi:** thêm Docker multi-stage cho React/Nginx và Spring Boot, Compose cho MySQL/API/UI, volume dữ liệu, healthcheck và port host cho UI. React và API dùng cùng origin; Nginx chuyển tiếp `/api` đến API nội bộ. Thêm `/health` để xác minh kết nối DB và chạy test profile cô lập.
 - **Vì sao:** chuẩn bị cách dựng lại từ clone sạch và kiểm tra thứ tự khởi động. Mẫu secret trong `.env.example` chỉ dùng cho demo local; không lấy `.env` vào image.
 - **Ảnh hưởng:** thêm `Dockerfile`, `docker-compose.yml`, `.dockerignore`, root `.gitattributes`, `frontend/nginx.conf`, `db/init/001-create-test-schema.sql`, và `HealthController`. Flyway V1–V6 tiếp tục là nguồn duy nhất tạo bảng/seed app; không sao chép hay sửa V1/V2. SQL init chỉ tạo schema test riêng.
-- **Giới hạn xác minh:** build Maven, backend suite, frontend unit/build chạy thật trên máy; Docker daemon chưa có nên image build, Compose health, restart volume và phép thử máy trắng vẫn chưa chạy.
+- **Giới hạn xác minh (cập nhật 2026-11-17):** Compose image build đã chạy trên bản sao cục bộ sạch từ bundle; `db`, `api`, `app` đạt `healthy`, `/health` trả trạng thái DB up, và restart API không chạy lại migration/nhân đôi seed. Đây không phải clone public tag. Test profile Compose còn thất bại (xem `docs/test-report.md`); phép thử clone máy trắng theo `v1.0` chưa chạy.
 
 ## 10. Thu gọn claim JWT theo checklist BT3
 

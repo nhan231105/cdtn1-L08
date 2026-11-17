@@ -2,13 +2,15 @@
 
 Take screenshots from the real terminal/application after running the listed command. Keep the command and result visible. Redact tokens, phone numbers, passwords, `.env` contents, and authorization headers before saving. Do not generate or edit a fake result image.
 
-## Deployment evidence still to capture after Docker is available
+## Deployment evidence still missing
+
+The Compose stack was built and its health checks were verified on a clean local bundle copy on 2026-11-17. This was not a public `v1.0` clone. No genuine terminal screenshots were captured for that run, and the Compose test profile failed; do not capture or label a test-suite PASS.
 
 | File | Command/result visible |
 |---|---|
 | `docker-compose-ps.png` | `docker compose ps` with `db`, `api`, and `app` all `healthy` |
 | `health.png` | `curl --fail http://localhost:3000/health` and `{"status":"ok","db":"up"}` |
-| `tests.png` | `docker compose --profile testing run --rm test` and Maven `BUILD SUCCESS`, zero failures/errors/skips |
+| `tests.png` | Capture only after the full test profile actually succeeds; the 2026-11-17 Compose run failed and must not be presented as PASS |
 | `c8-second-startup.png` | `docker compose restart api`, `docker compose ps`, Flyway `No migration necessary`, and unchanged seed counts |
 | `white-machine-clone.png` | Clone command for tag `v1.0`, then the two setup commands from the Deployment Guide and successful Verify output |
 

@@ -44,11 +44,11 @@ Ngày cập nhật cuối: 2026-11-17. Repository công khai sinh viên xác nh�
 
 1. **Kết quả kiểm thử:** Compose full test chưa đạt; `ReportingIntegrationTest` tái chạy 4/6 FAIL. Full run đã ghi nhận timestamp lệch 7 tiếng, lỗi reporting và benchmark tải không đạt. Chặng cuối không sửa code; không ghi bộ test là PASS.
 2. **Bảo mật/bằng chứng:** Maven Dependency-Check không hoàn tất; lần chạy dừng ở 50.000/426.378 bản ghi NVD. Chưa có ảnh do sinh viên chụp cho Compose và sec-1…sec-7. Không tạo ảnh giả.
-3. **Hồ sơ nộp:** cần sinh viên xác nhận họ tên/MSSV, cung cấp đề BT3 chính thức/tài liệu buổi 13 nếu muốn bỏ các giả định; cần ghép/xuất một PDF duy nhất và tự nộp VLU. Không có công cụ truy cập VLU trong phiên này.
+3. **Hồ sơ nộp:** PDF BT3 được biên soạn theo tài liệu và bằng chứng đang có; họ tên/MSSV suy ra từ hồ sơ BT2 và cần sinh viên xác nhận. Ảnh triển khai bắt buộc còn thiếu; đề BT3 chính thức/tài liệu buổi 13 chưa được cung cấp. PDF chưa được nộp VLU; không có công cụ truy cập VLU trong phiên này.
 
 ## Phát hành mã nguồn và trạng thái bàn giao
 
-Sinh viên đã xác nhận chặng cuối. Các thay đổi BT3 đã được đẩy fast-forward lên `main` của `https://github.com/nhan231105/cdtn1-L08.git`; tag annotated `v1.0` đã được đẩy và trang tag công khai truy cập được. `git ls-tree -r v1.0 --name-only docs/` xác nhận tài liệu nằm trong snapshot. Tag **không đồng nghĩa** các tiêu chí C1–C4 đã đạt: test Compose fail và phép thử clone theo tag chưa được thực hiện. Chưa có PDF BT3, link deploy cộng điểm hay xác nhận nộp VLU.
+Sinh viên đã xác nhận chặng cuối. Các thay đổi BT3 đã được đẩy fast-forward lên `main` của `https://github.com/nhan231105/cdtn1-L08.git`; tag annotated `v1.0` đã được đẩy và trang tag công khai truy cập được. `git ls-tree -r v1.0 --name-only docs/` xác nhận tài liệu nằm trong snapshot. PDF BT3 được tạo từ các tài liệu và bằng chứng hiện có; do còn thiếu ảnh triển khai nên đây chưa phải hồ sơ đáp ứng trọn vẹn mục ảnh minh chứng. Tag **không đồng nghĩa** các tiêu chí C1–C4 đã đạt: test Compose fail và phép thử clone theo tag chưa được thực hiện. Chưa có link deploy cộng điểm hay xác nhận nộp VLU.
 
 ## Nhật ký kiểm chứng cuối chặng (2026-11-17)
 
@@ -60,5 +60,5 @@ Sinh viên đã xác nhận chặng cuối. Các thay đổi BT3 đã được �
 - `ReportingIntegrationTest`: 6 test, 4 failure, 0 error, 0 skipped. Full Compose profile cũng ghi nhận failure khác; xem chi tiết và ranh giới lần chạy trong `docs/test-report.md`.
 - Maven Dependency-Check 12.1.0: tải dữ liệu NVD đến 50.000/426.378 (12%), không có báo cáo kết quả; mục checklist 7 vẫn CHƯA LÀM.
 - `git check-ignore -v .env` chặn `.env`; `git log --all --oneline -- .env` không có kết quả. Không đọc `.env`.
-- Clone nhánh/tag công khai mới và tạo PDF/nộp VLU: CHƯA THỰC HIỆN.
+- Clone tag công khai mới: CHƯA THỰC HIỆN. PDF BT3 đã được tạo dưới dạng hồ sơ trung thực theo bằng chứng hiện có; ảnh deploy còn thiếu và PDF chưa được nộp VLU.
 - File `.env` sẵn có tại workspace developer không được đóng gói; khi rà tên biến, thấy thiếu `DB_NAME` và `MYSQL_ROOT_PASSWORD`. Không đọc hay ghi lại giá trị. Bản dựng sạch đã tạo `.env` từ `.env.example`, gồm đủ biến và chạy được.

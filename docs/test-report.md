@@ -38,7 +38,7 @@
 - `docker compose --profile testing run --rm test` — **FAILED / interrupted before a final overall summary**. Captured failures included `SurveyFlowIntegrationTest` timestamp mismatch of 7 hours, `SurveyDeliveryLoadIntegrationTest` measuring 500 sent and 0 within 5 minutes, and reporting failures.
 - Re-run `docker compose --profile testing run --rm test ./mvnw -B -Dtest=ReportingIntegrationTest test` — **6 tests, 4 failures, 0 errors, 0 skipped; BUILD FAILURE**. Failures: two response counts/date-boundary assertions, one reporting role-matrix response 422 vs 200, and one technician aggregation assertion.
 - Repeatable individual test `docker compose --profile testing run --rm test ./mvnw -B -Dtest=AuthServiceTest test` — **1 test, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS**.
-- Public clean-machine clone by `git clone --branch v1.0`, tag verification and public-release test — **CHƯA CHẠY**; no v1.0 tag exists.
+- Public clean-machine clone by `git clone --branch v1.0` and end-to-end verification from that clone — **CHƯA CHẠY**. The public tag `v1.0` exists, but its clean-clone deployment has not been tested.
 - OWASP Dependency-Check Maven 12.1.0 — NVD update reached 50,000/426,378 records (12%) then stopped; **no backend vulnerability report was produced**.
 
-Không gộp những lần chạy khác ngày thành một lần chạy duy nhất. Các TC-01–TC-12 trên đây là các kết quả cục bộ trước đó; test profile Compose bổ sung phát hiện lỗi và không được ghi thành PASS. Cần sửa lỗi trước khi phát hành, sau đó chạy lại toàn bộ suite và chụp ảnh thật.
+Không gộp những lần chạy khác ngày thành một lần chạy duy nhất. Các TC-01–TC-12 trên đây là kết quả cục bộ trước đó; test profile Compose bổ sung phát hiện lỗi và không được ghi thành PASS. Tag `v1.0` đã được phát hành nhưng không chứng minh full Compose suite đạt; cần xử lý lỗi và kiểm thử lại trước khi tuyên bố bộ test/container đã nghiệm thu.
