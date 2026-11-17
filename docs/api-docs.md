@@ -8,7 +8,7 @@
 - JWT is sent as `Authorization: Bearer <access_token>`. Login tokens expire after 3600 seconds. The signed payload contains `sub` (numeric `user_id`), `role`, and `exp`; the server reloads the current account and center scope for each request.
 - The internal invitation API requires `X-Service-Key`; public survey endpoints require the unguessable survey token in the path. Survey tokens and bearer tokens are credentials: all examples redact them.
 - Dates use `yyyy-MM-dd`; local timestamps use the Asia/Ho_Chi_Minh offset. Error body shape is `{"error":{"code":"...","message":"...","fields":{}}}`.
-- Real examples below were captured from HTTP calls to the local API backed by a disposable MySQL test database on 2026-11-17, plus the Playwright run. Bearer and survey tokens are redacted. IDs and phone values belong to synthetic fixtures.
+- Real examples below were captured with PowerShell `Invoke-RestMethod`/`Invoke-WebRequest` against the local API backed by a disposable MySQL test database on 2026-11-17, plus the Playwright run. Bearer and survey tokens are redacted. IDs and phone values belong to synthetic fixtures.
 
 ## Route inventory
 
