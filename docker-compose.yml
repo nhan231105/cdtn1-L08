@@ -1,0 +1,76 @@
+services:
+  db:
+    image: mysql:8.0.46
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_NAME:?Set DB_NAME in .env}
+      MYSQL_USER: ${DB_USER:?Set DB_USER in .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      target: backend
+    environment:
+      DB_HOST: db
+      DB_URL: jdbc:mysql://db:3306/${DB_NAME:?Set DB_NAME in .env}?connectionTimeZone=Asia/Ho_Chi_Minh
+      DB_USER: ${DB_USER:?Set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:?Set SERVICE_API_KEY in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      BOOTSTRAP_ENABLED: ${BOOTSTRAP_ENABLED:?Set BOOTSTRAP_ENABLED in .env}
+      BOOTSTRAP_PASSWORD: ${BOOTSTRAP_PASSWORD:?Set BOOTSTRAP_PASSWORD in .env}
+      SURVEY_PUBLIC_BASE_URL: ${SURVEY_PUBLIC_BASE_URL:?Set SURVEY_PUBLIC_BASE_URL in .env}
+      GATEWAY_SIMULATE_FAILURE: ${GATEWAY_SIMULATE_FAILURE:?Set GATEWAY_SIMULATE_FAILURE in .env}
+      SURVEY_EXPIRY_DAYS: ${SURVEY_EXPIRY_DAYS:?Set SURVEY_EXPIRY_DAYS in .env}
+      SURVEY_SCHEDULER_ENABLED: ${SURVEY_SCHEDULER_ENABLED:?Set SURVEY_SCHEDULER_ENABLED in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/health | grep -q '\"status\":\"ok\",\"db\":\"up\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  app:
+    build:
+      context: .
+      target: frontend
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/health | grep -q '\"status\":\"ok\",\"db\":\"up\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  test:
+    profiles: ["testing"]
+    build:
+      context: .
+      target: backend-test
+    environment:
+      TEST_DB_URL: jdbc:mysql://db:3306/smartcrm_l8_test?connectionTimeZone=Asia/Ho_Chi_Minh
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
