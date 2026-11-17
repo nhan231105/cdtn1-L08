@@ -12,3 +12,13 @@ Sinh viên: Võ Nguyễn Thành Nhân – 2374802010360. Dự án: Smart CRM –
 | Codex | Tài liệu chạy lại, môi trường, nghiệm thu, khai báo và báo cáo | `README.md`, `.env.example`, `docs/`, `scripts/test.ps1` | So biến với properties/source; clone sạch trên cùng máy đã qua test/build/E2E; chưa kiểm chứng trên máy khác |
 
 Phần giao cho AI vẫn cần sinh viên đọc, giải thích quy tắc/TX/SQL/phân quyền và tự xác nhận trước khi nộp. Không có bằng chứng thử nghiệm người dùng 5 người thì không ghi đã đạt NFR07. Không dùng AI để giả ảnh kiểm thử hoặc hợp thức hóa sửa/xóa phản hồi trái BT1.
+
+## Khai báo bổ sung cho BT3
+
+**[GIẢ ĐỊNH – cần đối chiếu đề BT3]:** Bốn cột dưới đây là đề xuất vì chưa có biểu mẫu bốn cột chính thức trong đề được cung cấp.
+
+| Công cụ AI | Mục đích sử dụng | Phần việc/tệp được hỗ trợ | Cách kiểm chứng và giới hạn |
+|---|---|---|---|
+| Codex (phiên làm việc này; không ghi nhận model ID trong giao diện) | Khảo sát Git/source; đề xuất Docker Compose; bổ sung health endpoint và giới hạn claim JWT; soạn test plan/report, bug log, deployment/API/security docs | `Dockerfile`, `docker-compose.yml`, `.env.example`, `.dockerignore`, `.gitattributes`, `HealthController`, auth classes/tests, `frontend/nginx.conf`, `docs/` | Backend suite chạy thật 57/57 PASS; frontend 18/18 và build PASS; npm audit production 0 vulnerabilities; probe health/injection/scope chạy trực tiếp. Docker CLI/Compose có cài nhưng Docker Desktop không khởi động được, nên Compose và máy trắng chưa chạy. Không dùng AI tạo kết quả giả; sinh viên cần đọc và xác nhận nội dung/ảnh trước khi nộp. |
+
+Các test, số liệu và trạng thái trong BT3 chỉ được ghi từ log/lệnh quan sát được. Nội dung tạo bằng AI cần được sinh viên tự kiểm tra, bổ sung ảnh thật và sửa nếu không khớp lần chạy phát hành.

@@ -1,5 +1,16 @@
 # Smart CRM – Mekong Mobile · L8 · BT2
 
+## Run the review demo with Docker
+
+From the repository root, run these two commands:
+
+```sh
+cp .env.example .env
+docker compose up -d --build
+```
+
+Open `http://localhost:3000`. The API applies Flyway V1–V6 and creates the synthetic demo rows at startup. The frontend proxies `/api` to the private backend service; MySQL has no host port. See [Deployment Guide](docs/deployment-guide.md) for requirements, environment values, verification, and tests. BT3 review documents: [current-state report](docs/bao-cao-hien-trang-bt3.md), [Test Plan](docs/test-plan.md), [Test Report](docs/test-report.md), [Bug Log](docs/bug-log.md), [Security Checklist](docs/checklist-bao-mat.md), and [API Reference](docs/api-docs.md).
+
 Phân hệ CSAT sau bảo hành tiếp nối thiết kế BT1 trên cùng repository. L8 đọc phiếu đã đóng từ L2/L4, tạo và gửi lời mời qua cổng SMS/Zalo giả lập, nhận một phản hồi bất biến cho mỗi phiếu và cung cấp tra cứu, thống kê, Excel theo vai trò. Backend dùng Spring Boot/MySQL; React lấy dữ liệu từ API thật. Các số liệu trong giao diện được truy vấn từ database đang kết nối.
 
 Thiết kế gốc: [SRS](srs.md), [API Contract](api-contract.md), [Use Case](usecase-diagram.drawio), [wireframe](wireframe-l8.png). Xem [ma trận khoảng trống](docs/bt2-gap-analysis.md), [thay đổi thiết kế](docs/thay-doi-thiet-ke.md), [khai báo AI BT2](docs/ai-disclosure.md) và [hướng dẫn nộp](docs/submission-guide.md) để biết giới hạn bằng chứng hiện tại.

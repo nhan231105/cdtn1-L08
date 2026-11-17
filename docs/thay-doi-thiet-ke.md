@@ -54,3 +54,16 @@ V5 bổ sung `reminder_attempts` và `last_reminder_attempt_at`: UC04 include UC
 - Trạng thái xác nhận: hiện thực và kiểm thử đã có; **chờ xác nhận học thuật** rằng CRUD có điều kiện theo vòng đời lời mời và CRUD mẫu khảo sát đáp ứng cách chấm S1. Không xem việc thêm mã là biên bản duyệt của giảng viên.
 
 Các giả định A03–A06 vẫn ghi “đề xuất – chờ GV” trong hồ sơ gốc; triển khai dùng giá trị đã thiết kế (7 ngày, 72 giờ, Marketing toàn công ty, score≥4) theo yêu cầu hiện thực L8 hiện tại, không ghi thành đã có biên bản GV duyệt.
+
+## 9. Bổ sung đóng gói, health check và kiểm thử cho BT3
+
+- **Thay đổi:** thêm Docker multi-stage cho React/Nginx và Spring Boot, Compose cho MySQL/API/UI, volume dữ liệu, healthcheck và port host cho UI. React và API dùng cùng origin; Nginx chuyển tiếp `/api` đến API nội bộ. Thêm `/health` để xác minh kết nối DB và chạy test profile cô lập.
+- **Vì sao:** chuẩn bị cách dựng lại từ clone sạch và kiểm tra thứ tự khởi động. Mẫu secret trong `.env.example` chỉ dùng cho demo local; không lấy `.env` vào image.
+- **Ảnh hưởng:** thêm `Dockerfile`, `docker-compose.yml`, `.dockerignore`, root `.gitattributes`, `frontend/nginx.conf`, `db/init/001-create-test-schema.sql`, và `HealthController`. Flyway V1–V6 tiếp tục là nguồn duy nhất tạo bảng/seed app; không sao chép hay sửa V1/V2. SQL init chỉ tạo schema test riêng.
+- **Giới hạn xác minh:** build Maven, backend suite, frontend unit/build chạy thật trên máy; Docker daemon chưa có nên image build, Compose health, restart volume và phép thử máy trắng vẫn chưa chạy.
+
+## 10. Thu gọn claim JWT theo checklist BT3
+
+- **Thay đổi:** access token dùng `sub=user_id`, `role`, `exp`; bỏ `username` và `center_id` khỏi payload. Mỗi request tra user hiện hành theo ID trong MySQL trước khi kiểm role/phạm vi trung tâm.
+- **Vì sao:** payload chỉ giữ định danh, vai trò và hạn sử dụng; trung tâm được đọc từ dữ liệu hiện tại, không cần giữ bản sao trong token.
+- **Ảnh hưởng:** token cũ có subject là username không dùng được sau cập nhật; người dùng đăng nhập lại. `AuthServiceTest` kiểm claim set và xác thực ID; full backend suite ngày 17/11 PASS 57/57.
